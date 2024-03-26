@@ -17,7 +17,7 @@ USER=$(getDeploymentUser)
 
 sleep $SLEEP_DURATION
 
-logInfoMessage "I'll create a Deployment tracking successful for entity GUID: ${ENTITY_GUID}"
+logInfoMessage "I'll create a Deployment tracking for entity GUID: ${ENTITY_GUID}"
 
 newrelic profile add --profile "${NEW_RELIC_PROFILE}" --region "${NEW_RELIC_REGION}" --apiKey "${NEW_RELIC_API_KEY}" --accountId "${NEW_RELIC_ACCOUNT_ID}" --licenseKey "${NEW_RELIC_LICENSE_KEY}" > /dev/null 2>&1
 
