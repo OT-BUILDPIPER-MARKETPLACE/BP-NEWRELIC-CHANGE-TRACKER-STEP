@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
+RUN apt update && apt install -y sudo curl jq vim
 RUN curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash
-
 COPY build.sh .
 RUN chmod +x build.sh
 ADD BP-BASE-SHELL-STEPS .

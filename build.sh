@@ -8,7 +8,11 @@ source aws-functions.sh
 
 ENTITY_GUID=$(getNewrelicGuid)
 
-logInfoMessage "I'll create a Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
+sleep $SLEEP_DURATION
+
+logInfoMessage "I'll create a Deployment tracking successful for entity GUID: ${ENTITY_GUID}"
+
+newrelic profile add --profile "${NEW_RELIC_PROFILE}" --region "${NEW_RELIC_REGION}" --apiKey "${NEW_RELIC_API_KEY}" --accountId "${NEW_RELIC_ACCOUNT_ID}" --licenseKey "${NEW_RELIC_LICENSE_KEY}"
 
 if ! newrelic profile list | grep -q "${NEW_RELIC_PROFILE}"; then
     logErrorMessage "Error: New Relic CLI is not authenticated with the profile '${NEW_RELIC_PROFILE}'."
