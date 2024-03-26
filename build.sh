@@ -1,24 +1,36 @@
 #!/bin/bash
-source /opt/buildpiper/shell-functions/functions.sh
-source /opt/buildpiper/shell-functions/log-functions.sh
-source /opt/buildpiper/shell-functions/str-functions.sh
-source /opt/buildpiper/shell-functions/file-functions.sh
-source /opt/buildpiper/shell-functions/aws-functions.sh
 
-TASK_STATUS=0
+source functions.sh
+source log-functions.sh
+source str-functions.sh
+source file-functions.sh
+source aws-functions.sh
 
-CODEBASE_LOCATION="${WORKSPACE}"/"${CODEBASE_DIR}"
-logInfoMessage "I'll do processing at [$CODEBASE_LOCATION]"
-sleep  $SLEEP_DURATION
-cd  "${CODEBASE_LOCATION}"
+ENTITY_GUID=$(getNewrelicGuid)
 
-TASK_STATUS=0
+logInfoMessage "I'll create a Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
 
-if [condition]; then
-    logErrorMessage "Done the required operation"
-else
-    TASK_STATUS=1
-    logErrorMessage "Target server not provided please check"
-
+if ! newrelic profile list | grep -q "${NEW_RELIC_PROFILE}"; then
+    logErrorMessage "Error: New Relic CLI is not authenticated with the profile '${NEW_RELIC_PROFILE}'."
+    exit 1
 fi
-saveTaskStatus ${TASK_STATUS} ${ACTIVITY_SUB_TASK_CODE}
+
+VERSION=$(getDeploymentImage)
+GIT_URL=$(getDeploymentGitUrl)
+GIT_BRANCH=$(getDeploymentGitBranch)
+GIT_COMMIT_MSG=$(getGitCommitMsg)
+GIT_COMMIT_SHA=$(getGitCommitSha)                                                                                                                                                                                                                                                                                                                                                               
+DESCRIPTION="Deploy Details :- gitUrl: $GIT_URL, gitBranch: $GIT_BRANCH, gitCommitSha: $GIT_COMMIT_SHA, gitCommitMsg: $GIT_COMMIT_MSG, dockerImage: ${VERSION}"
+USER=$(getDeploymentUser)
+TIMESTAMP=$(getDeploymentTimestamp)                                                                                                                                                                             
+
+if newrelic entity deployment create --guid "${ENTITY_GUID}" --version "${VERSION}" \
+  --description "${DESCRIPTION}" --user "${USER}" --deploymentType "${DEPLOYMENT_TYPE}" \
+  --timestamp "${TIMESTAMP}"
+then
+  logInfoMessage "Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
+  generateOutput $ACTIVITY_SUB_TASK_CODE true "Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
+else
+  logErrorMessage "Deployment tracking failed for entity GUID: ${ENTITY_GUID}."
+  generateOutput $ACTIVITY_SUB_TASK_CODE false "Deployment tracking failed for entity GUID: ${ENTITY_GUID}."
+fi
