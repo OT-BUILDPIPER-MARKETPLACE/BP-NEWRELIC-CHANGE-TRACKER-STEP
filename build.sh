@@ -7,6 +7,13 @@ source file-functions.sh
 source aws-functions.sh
 
 ENTITY_GUID=$(getNewrelicGuid)
+VERSION=$(getDeploymentImage)
+GIT_URL=$(getDeploymentGitUrl)
+GIT_BRANCH=$(getDeploymentGitBranch)
+GIT_COMMIT_MSG=$(getGitCommitMsg)
+GIT_COMMIT_SHA=$(getGitCommitSha)                                                                                                                                                                                                                                                                                                                                                               
+DESCRIPTION="Deploy Details :- gitUrl: $GIT_URL, gitBranch: $GIT_BRANCH, gitCommitSha: $GIT_COMMIT_SHA, gitCommitMsg: $GIT_COMMIT_MSG, dockerImage: ${VERSION}"
+USER=$(getDeploymentUser)
 
 sleep $SLEEP_DURATION
 
@@ -21,18 +28,8 @@ else
     logInfoMessage "Successfully authenticated with New Relic CLI."
 fi
 
-VERSION=$(getDeploymentImage)
-GIT_URL=$(getDeploymentGitUrl)
-GIT_BRANCH=$(getDeploymentGitBranch)
-GIT_COMMIT_MSG=$(getGitCommitMsg)
-GIT_COMMIT_SHA=$(getGitCommitSha)                                                                                                                                                                                                                                                                                                                                                               
-DESCRIPTION="Deploy Details :- gitUrl: $GIT_URL, gitBranch: $GIT_BRANCH, gitCommitSha: $GIT_COMMIT_SHA, gitCommitMsg: $GIT_COMMIT_MSG, dockerImage: ${VERSION}"
-USER=$(getDeploymentUser)
-TIMESTAMP=$(getDeploymentTimestamp)                                                                                                                                                                             
-
 if newrelic entity deployment create --guid "${ENTITY_GUID}" --version "${VERSION}" \
-  --description "${DESCRIPTION}" --user "${USER}" --deploymentType "${DEPLOYMENT_TYPE}" \
-  --timestamp "${TIMESTAMP}"
+  --description "${DESCRIPTION}" --user "${USER}" --deploymentType "${DEPLOYMENT_TYPE}" 
 then
   logInfoMessage "Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
   generateOutput $ACTIVITY_SUB_TASK_CODE true "Deployment tracking successful for entity GUID: ${ENTITY_GUID}."
