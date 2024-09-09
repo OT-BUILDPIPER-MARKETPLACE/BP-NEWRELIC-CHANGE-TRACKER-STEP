@@ -6,7 +6,7 @@ source str-functions.sh
 source file-functions.sh
 source aws-functions.sh
 
-ENTITY_GUID=$(getNewrelicGuid)
+APM_NAME=$(getNewrelicApm)
 VERSION=$(getDeploymentImage)
 GIT_URL=$(getDeploymentGitUrl)
 GIT_BRANCH=$(getDeploymentGitBranch)
@@ -26,6 +26,22 @@ if ! newrelic profile list | grep -q "${NEW_RELIC_PROFILE}"; then
     exit 1
 else
     logInfoMessage "Successfully authenticated with New Relic CLI."
+fi
+
+# Search for the New Relic entity based on the provided APM name
+if ! ENTITY_INFO=$(newrelic entity search --name "$APM_NAME"); then
+    logErrorMessage "Failed to retrieve entity information from New Relic. Please check your authentication and APM name."
+    exit 1
+else
+    logInfoMessage "Successfully retrieved entity information from New Relic."
+fi
+
+# Extract the ENTITY_GUID from the retrieved entity information using jq
+if ! ENTITY_GUID=$(echo "$ENTITY_INFO" | jq -r .guid); then
+    logErrorMessage "Failed to extract ENTITY_GUID from New Relic entity information. Please ensure the APM name is correct and valid data is returned."
+    exit 1
+else
+    logInfoMessage "Successfully extracted ENTITY_GUID: $ENTITY_GUID from the entity information."
 fi
 
 if newrelic entity deployment create --guid "${ENTITY_GUID}" --version "${VERSION}" \
