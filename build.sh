@@ -29,14 +29,14 @@ else
     logInfoMessage "Successfully authenticated with New Relic CLI."
 fi
 
-if ! ENTITY_INFO=$(newrelic entity search --name "$APM_NAME"); then
+if ! ENTITY_INFO=$(newrelic entity search --name "$APM_NAME" --profile "${NEW_RELIC_PROFILE}"); then
     logErrorMessage "Failed to retrieve entity information from New Relic. Please check your authentication and Entity NAME."
     exit 1
 else
     logInfoMessage "Successfully retrieved entity information from New Relic."
 fi
 
-if ! ENTITY_GUID=$(echo "$ENTITY_INFO" | jq -r .guid); then
+if ! ENTITY_GUID=$(echo "$ENTITY_INFO" | jq -r --arg name "$APM_NAME" 'if type == "array" then .[] | select(.name == $name) | .guid else select(.name == $name) | .guid end'); then
     logErrorMessage "Failed to extract ENTITY_GUID from New Relic entity information. Please ensure the Entity NAME is correct and valid data is returned."
     exit 1
 else
@@ -47,7 +47,7 @@ logInfoMessage "Entity NAME: ${APM_NAME}"
 logInfoMessage "Entity GUID: ${ENTITY_GUID}"
 
 if newrelic entity deployment create --guid "${ENTITY_GUID}" --version "${VERSION}" \
-  --description "${DESCRIPTION}" --user "${USER}" --deploymentType "${DEPLOYMENT_TYPE}"; then
+  --description "${DESCRIPTION}" --user "${USER}" --deploymentType "${DEPLOYMENT_TYPE}" --profile "${NEW_RELIC_PROFILE}"; then
     logInfoMessage "Deployment tracking successful for Entity NAME: ${APM_NAME}, Entity GUID: ${ENTITY_GUID}."
     generateOutput $ACTIVITY_SUB_TASK_CODE true "Deployment tracking successful for Entity NAME: ${APM_NAME}, Entity GUID: ${ENTITY_GUID}."
 else
